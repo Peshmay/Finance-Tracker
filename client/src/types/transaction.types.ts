@@ -19,3 +19,11 @@ export type Transaction = {
   type: TransactionType;
   amount: number;
 };
+
+export type CreateTransactionInput = {
+  date: string;
+  description: string;
+  category: TransactionCategory;
+  type: TransactionType;
+  amount: number;
+};

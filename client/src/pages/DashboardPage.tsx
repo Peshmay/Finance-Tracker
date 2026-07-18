@@ -1,12 +1,17 @@
+import { useMemo, useState } from "react";
 import { ArrowDownCircle, ArrowUpCircle, WalletCards } from "lucide-react";
 import AppHeader from "../components/layout/AppHeader";
+import AddTransactionForm from "../components/dashboard/AddTransactionForm";
 import MonthSelector from "../components/dashboard/MonthSelector";
 import SpendingChart from "../components/dashboard/SpendingChart";
 import SummaryCard from "../components/dashboard/SummaryCard";
 import TransactionTable from "../components/dashboard/TransactionTable";
-import type { Transaction } from "../types/transaction.types";
+import type {
+  CreateTransactionInput,
+  Transaction,
+} from "../types/transaction.types";
 
-const transactions: Transaction[] = [
+const initialTransactions: Transaction[] = [
   {
     id: "1",
     date: "2025-01-01",
@@ -57,7 +62,42 @@ const transactions: Transaction[] = [
   },
 ];
 
+function formatCurrency(amount: number) {
+  return `$${amount.toLocaleString()}`;
+}
+
 export default function DashboardPage() {
+  const [transactions, setTransactions] =
+    useState<Transaction[]>(initialTransactions);
+
+  const totals = useMemo(() => {
+    const income = transactions
+      .filter((transaction) => transaction.type === "income")
+      .reduce((sum, transaction) => sum + transaction.amount, 0);
+
+    const expenses = transactions
+      .filter((transaction) => transaction.type === "expense")
+      .reduce((sum, transaction) => sum + transaction.amount, 0);
+
+    return {
+      income,
+      expenses,
+      balance: income - expenses,
+    };
+  }, [transactions]);
+
+  function handleAddTransaction(input: CreateTransactionInput) {
+    const newTransaction: Transaction = {
+      id: crypto.randomUUID(),
+      ...input,
+    };
+
+    setTransactions((currentTransactions) => [
+      newTransaction,
+      ...currentTransactions,
+    ]);
+  }
+
   return (
     <div className="min-h-screen bg-slate-50">
       <AppHeader />
@@ -68,7 +108,7 @@ export default function DashboardPage() {
         <section className="mt-8 grid gap-4 md:grid-cols-3">
           <SummaryCard
             title="Income"
-            value="$5,800"
+            value={formatCurrency(totals.income)}
             description="Total income this month"
             tone="income"
             icon={<ArrowUpCircle size={22} />}
@@ -76,7 +116,7 @@ export default function DashboardPage() {
 
           <SummaryCard
             title="Expenses"
-            value="$1,505"
+            value={formatCurrency(totals.expenses)}
             description="Total expenses this month"
             tone="expense"
             icon={<ArrowDownCircle size={22} />}
@@ -84,11 +124,15 @@ export default function DashboardPage() {
 
           <SummaryCard
             title="Balance"
-            value="$4,295"
+            value={formatCurrency(totals.balance)}
             description="Income minus expenses"
             tone="balance"
             icon={<WalletCards size={22} />}
           />
+        </section>
+
+        <section className="mt-8">
+          <AddTransactionForm onAddTransaction={handleAddTransaction} />
         </section>
 
         <section className="mt-8 flex flex-col gap-6 lg:grid lg:grid-cols-[1.7fr_1fr]">
