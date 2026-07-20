@@ -137,7 +137,7 @@ export default function DashboardPage() {
 
         <section className="mt-8 flex flex-col gap-6 lg:grid lg:grid-cols-[1.7fr_1fr]">
           <TransactionTable transactions={transactions} />
-          <SpendingChart />
+          <SpendingChart transactions={transactions} />
         </section>
       </main>
     </div>
