@@ -98,6 +98,14 @@ export default function DashboardPage() {
     ]);
   }
 
+  function handleDeleteTransaction(transactionId: string) {
+    setTransactions((currentTransactions) =>
+      currentTransactions.filter(
+        (transaction) => transaction.id !== transactionId,
+      ),
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-50">
       <AppHeader />
@@ -136,7 +144,10 @@ export default function DashboardPage() {
         </section>
 
         <section className="mt-8 flex flex-col gap-6 lg:grid lg:grid-cols-[1.7fr_1fr]">
-          <TransactionTable transactions={transactions} />
+          <TransactionTable
+            transactions={transactions}
+            onDeleteTransaction={handleDeleteTransaction}
+          />
           <SpendingChart transactions={transactions} />
         </section>
       </main>
