@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { ArrowDownCircle, ArrowUpCircle, WalletCards } from "lucide-react";
 import AppHeader from "../components/layout/AppHeader";
 import AddTransactionForm from "../components/dashboard/AddTransactionForm";
+import DeleteUndoToast from "../components/dashboard/DeleteUndoToast";
 import MonthSelector from "../components/dashboard/MonthSelector";
 import SpendingChart from "../components/dashboard/SpendingChart";
 import SummaryCard from "../components/dashboard/SummaryCard";
@@ -70,6 +71,9 @@ export default function DashboardPage() {
   const [transactions, setTransactions] =
     useState<Transaction[]>(initialTransactions);
 
+  const [deletedTransaction, setDeletedTransaction] =
+    useState<Transaction | null>(null);
+
   const totals = useMemo(() => {
     const income = transactions
       .filter((transaction) => transaction.type === "income")
@@ -99,11 +103,38 @@ export default function DashboardPage() {
   }
 
   function handleDeleteTransaction(transactionId: string) {
+    const transactionToDelete = transactions.find(
+      (transaction) => transaction.id === transactionId,
+    );
+
+    if (!transactionToDelete) {
+      return;
+    }
+
     setTransactions((currentTransactions) =>
       currentTransactions.filter(
         (transaction) => transaction.id !== transactionId,
       ),
     );
+
+    setDeletedTransaction(transactionToDelete);
+  }
+
+  function handleUndoDelete() {
+    if (!deletedTransaction) {
+      return;
+    }
+
+    setTransactions((currentTransactions) => [
+      deletedTransaction,
+      ...currentTransactions,
+    ]);
+
+    setDeletedTransaction(null);
+  }
+
+  function handleDismissDeleteToast() {
+    setDeletedTransaction(null);
   }
 
   return (
@@ -148,9 +179,16 @@ export default function DashboardPage() {
             transactions={transactions}
             onDeleteTransaction={handleDeleteTransaction}
           />
+
           <SpendingChart transactions={transactions} />
         </section>
       </main>
+
+      <DeleteUndoToast
+        deletedTransaction={deletedTransaction}
+        onUndo={handleUndoDelete}
+        onDismiss={handleDismissDeleteToast}
+      />
     </div>
   );
 }
