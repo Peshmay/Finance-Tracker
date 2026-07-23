@@ -1,12 +1,20 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import type { FormEvent } from "react";
 import type {
   CreateTransactionInput,
+  Transaction,
   TransactionCategory,
   TransactionType,
 } from "../../types/transaction.types";
 
 type AddTransactionFormProps = {
   onAddTransaction: (transaction: CreateTransactionInput) => void;
+  editingTransaction: Transaction | null;
+  onUpdateTransaction: (
+    transactionId: string,
+    transaction: CreateTransactionInput,
+  ) => void;
+  onCancelEdit: () => void;
 };
 
 type FormErrors = {
@@ -27,17 +35,46 @@ const categories: TransactionCategory[] = [
   "other",
 ];
 
-const today = new Date().toISOString().split("T")[0];
+function getTodayDate() {
+  return new Date().toISOString().slice(0, 10);
+}
 
 export default function AddTransactionForm({
   onAddTransaction,
+  editingTransaction,
+  onUpdateTransaction,
+  onCancelEdit,
 }: AddTransactionFormProps) {
-  const [date, setDate] = useState(today);
+  const [date, setDate] = useState(getTodayDate());
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState<TransactionCategory>("food");
   const [type, setType] = useState<TransactionType>("expense");
   const [amount, setAmount] = useState("");
   const [errors, setErrors] = useState<FormErrors>({});
+
+  const isEditing = editingTransaction !== null;
+
+  useEffect(() => {
+    if (!editingTransaction) {
+      return;
+    }
+
+    setDate(editingTransaction.date);
+    setDescription(editingTransaction.description);
+    setCategory(editingTransaction.category);
+    setType(editingTransaction.type);
+    setAmount(String(editingTransaction.amount));
+    setErrors({});
+  }, [editingTransaction]);
+
+  function resetForm() {
+    setDate(getTodayDate());
+    setDescription("");
+    setCategory("food");
+    setType("expense");
+    setAmount("");
+    setErrors({});
+  }
 
   function validateForm() {
     const nextErrors: FormErrors = {};
@@ -64,7 +101,7 @@ export default function AddTransactionForm({
     return Object.keys(nextErrors).length === 0;
   }
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const isValid = validateForm();
@@ -73,37 +110,46 @@ export default function AddTransactionForm({
       return;
     }
 
-    onAddTransaction({
+    const formData: CreateTransactionInput = {
       date,
       description: description.trim(),
       category,
       type,
       amount: Number(amount),
-    });
+    };
 
-    setDescription("");
-    setCategory("food");
-    setType("expense");
-    setAmount("");
-    setDate(today);
-    setErrors({});
+    if (editingTransaction) {
+      onUpdateTransaction(editingTransaction.id, formData);
+    } else {
+      onAddTransaction(formData);
+    }
+
+    resetForm();
+  }
+
+  function handleCancelEdit() {
+    resetForm();
+    onCancelEdit();
   }
 
   function clearFieldError(field: keyof FormErrors) {
-    setErrors((currentErrors) => ({
-      ...currentErrors,
-      [field]: undefined,
-    }));
+    setErrors((currentErrors) => {
+      const nextErrors = { ...currentErrors };
+      delete nextErrors[field];
+      return nextErrors;
+    });
   }
 
   return (
     <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
       <div>
         <h2 className="text-lg font-semibold text-slate-900">
-          Add transaction
+          {isEditing ? "Edit transaction" : "Add transaction"}
         </h2>
         <p className="mt-1 text-sm text-slate-500">
-          Record new income or expenses for this month.
+          {isEditing
+            ? "Update the selected income or expense record."
+            : "Record new income or expenses for this month."}
         </p>
       </div>
 
@@ -226,13 +272,23 @@ export default function AddTransactionForm({
           )}
         </div>
 
-        <div className="flex items-end lg:col-span-6">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end lg:col-span-6">
           <button
             type="submit"
             className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 sm:w-auto"
           >
-            Add transaction
+            {isEditing ? "Update transaction" : "Add transaction"}
           </button>
+
+          {isEditing && (
+            <button
+              type="button"
+              onClick={handleCancelEdit}
+              className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 sm:w-auto"
+            >
+              Cancel
+            </button>
+          )}
         </div>
       </form>
     </section>

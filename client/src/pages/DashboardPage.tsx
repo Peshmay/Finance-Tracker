@@ -74,6 +74,9 @@ export default function DashboardPage() {
   const [deletedTransaction, setDeletedTransaction] =
     useState<Transaction | null>(null);
 
+  const [editingTransaction, setEditingTransaction] =
+    useState<Transaction | null>(null);
+
   const totals = useMemo(() => {
     const income = transactions
       .filter((transaction) => transaction.type === "income")
@@ -102,6 +105,32 @@ export default function DashboardPage() {
     ]);
   }
 
+  function handleEditTransaction(transaction: Transaction) {
+    setEditingTransaction(transaction);
+  }
+
+  function handleUpdateTransaction(
+    transactionId: string,
+    input: CreateTransactionInput,
+  ) {
+    setTransactions((currentTransactions) =>
+      currentTransactions.map((transaction) =>
+        transaction.id === transactionId
+          ? {
+              ...transaction,
+              ...input,
+            }
+          : transaction,
+      ),
+    );
+
+    setEditingTransaction(null);
+  }
+
+  function handleCancelEdit() {
+    setEditingTransaction(null);
+  }
+
   function handleDeleteTransaction(transactionId: string) {
     const transactionToDelete = transactions.find(
       (transaction) => transaction.id === transactionId,
@@ -118,6 +147,10 @@ export default function DashboardPage() {
     );
 
     setDeletedTransaction(transactionToDelete);
+
+    if (editingTransaction?.id === transactionId) {
+      setEditingTransaction(null);
+    }
   }
 
   function handleUndoDelete() {
@@ -171,12 +204,18 @@ export default function DashboardPage() {
         </section>
 
         <section className="mt-8">
-          <AddTransactionForm onAddTransaction={handleAddTransaction} />
+          <AddTransactionForm
+            onAddTransaction={handleAddTransaction}
+            editingTransaction={editingTransaction}
+            onUpdateTransaction={handleUpdateTransaction}
+            onCancelEdit={handleCancelEdit}
+          />
         </section>
 
         <section className="mt-8 flex flex-col gap-6 lg:grid lg:grid-cols-[1.7fr_1fr]">
           <TransactionTable
             transactions={transactions}
+            onEditTransaction={handleEditTransaction}
             onDeleteTransaction={handleDeleteTransaction}
           />
 

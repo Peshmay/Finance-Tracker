@@ -1,13 +1,15 @@
-import { Trash2 } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 import type { Transaction } from "../../types/transaction.types";
 
 type TransactionTableProps = {
   transactions: Transaction[];
+  onEditTransaction: (transaction: Transaction) => void;
   onDeleteTransaction: (transactionId: string) => void;
 };
 
 export default function TransactionTable({
   transactions,
+  onEditTransaction,
   onDeleteTransaction,
 }: TransactionTableProps) {
   return (
@@ -30,7 +32,7 @@ export default function TransactionTable({
               <th className="px-5 py-3">Category</th>
               <th className="px-5 py-3">Type</th>
               <th className="px-5 py-3 text-right">Amount</th>
-              <th className="px-5 py-3 text-right">Action</th>
+              <th className="px-5 py-3 text-right">Actions</th>
             </tr>
           </thead>
 
@@ -62,15 +64,26 @@ export default function TransactionTable({
                   {transaction.amount.toLocaleString()}
                 </td>
 
-                <td className="px-5 py-4 text-right">
-                  <button
-                    type="button"
-                    onClick={() => onDeleteTransaction(transaction.id)}
-                    className="inline-flex items-center justify-center rounded-lg border border-slate-200 p-2 text-slate-500 hover:border-red-200 hover:bg-red-50 hover:text-red-600"
-                    aria-label={`Delete ${transaction.description}`}
-                  >
-                    <Trash2 size={16} />
-                  </button>
+                <td className="px-5 py-4">
+                  <div className="flex justify-end gap-2">
+                    <button
+                      type="button"
+                      onClick={() => onEditTransaction(transaction)}
+                      className="inline-flex items-center justify-center rounded-lg border border-slate-200 p-2 text-slate-500 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600"
+                      aria-label={`Edit ${transaction.description}`}
+                    >
+                      <Pencil size={16} />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => onDeleteTransaction(transaction.id)}
+                      className="inline-flex items-center justify-center rounded-lg border border-slate-200 p-2 text-slate-500 hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+                      aria-label={`Delete ${transaction.description}`}
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
@@ -78,7 +91,6 @@ export default function TransactionTable({
         </table>
       </div>
 
-      {/* Mobile version */}
       <div className="divide-y divide-slate-100 md:hidden">
         {transactions.map((transaction) => (
           <article key={transaction.id} className="px-5 py-4">
@@ -104,15 +116,27 @@ export default function TransactionTable({
                   {transaction.amount.toLocaleString()}
                 </p>
 
-                <button
-                  type="button"
-                  onClick={() => onDeleteTransaction(transaction.id)}
-                  className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-red-600"
-                  aria-label={`Delete ${transaction.description}`}
-                >
-                  <Trash2 size={14} />
-                  Delete
-                </button>
+                <div className="mt-2 flex justify-end gap-3">
+                  <button
+                    type="button"
+                    onClick={() => onEditTransaction(transaction)}
+                    className="inline-flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-blue-600"
+                    aria-label={`Edit ${transaction.description}`}
+                  >
+                    <Pencil size={14} />
+                    Edit
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => onDeleteTransaction(transaction.id)}
+                    className="inline-flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-red-600"
+                    aria-label={`Delete ${transaction.description}`}
+                  >
+                    <Trash2 size={14} />
+                    Delete
+                  </button>
+                </div>
               </div>
             </div>
           </article>
